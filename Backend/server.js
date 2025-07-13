@@ -170,6 +170,23 @@ for (const testPath of possibleFrontendPaths) {
 if (frontendPath) {
   app.use(express.static(frontendPath));
   console.log('Serving static files from:', frontendPath);
+  
+  // Log available files for debugging
+  try {
+    const files = fs.readdirSync(frontendPath);
+    console.log('Available static files:', files.slice(0, 10)); // Show first 10 files
+    
+    // Check for images directory
+    const imagesPath = path.join(frontendPath, 'images');
+    if (fs.existsSync(imagesPath)) {
+      const imageFiles = fs.readdirSync(imagesPath);
+      console.log('Available images:', imageFiles);
+    } else {
+      console.log('⚠️ Images directory not found at:', imagesPath);
+    }
+  } catch (error) {
+    console.log('Error reading static files:', error.message);
+  }
 } else {
   console.error('Frontend directory not found. Tried paths:', possibleFrontendPaths);
 }
