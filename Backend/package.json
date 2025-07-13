@@ -4,7 +4,7 @@
     "description": "Wing System - A comprehensive authentication and management system",
     "main": "server.js",
       "scripts": {
-    "start": "node deployment-status.js && node update-urls.js && node copy-frontend.js && node fix-images.js && node create-favicon.js && node verify-images.js && node server.js",
+    "start": "node deploy-simple.js && node server.js",
     "dev": "nodemon server.js",
     "build": "node copy-frontend.js",
     "status": "node deployment-status.js"
