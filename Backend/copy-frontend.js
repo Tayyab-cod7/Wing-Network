@@ -64,6 +64,21 @@ try {
   } else {
     console.log('Images directory not found, skipping...');
   }
+  
+  // Fix image paths in HTML files
+  console.log('Fixing image paths in HTML files...');
+  const htmlFiles = fs.readdirSync(targetDir).filter(file => file.endsWith('.html'));
+  htmlFiles.forEach(file => {
+    const filePath = path.join(targetDir, file);
+    let content = fs.readFileSync(filePath, 'utf8');
+    
+    // Fix relative image paths to absolute paths
+    content = content.replace(/src="images\//g, 'src="/images/');
+    
+    fs.writeFileSync(filePath, content, 'utf8');
+    console.log(`Fixed image paths in: ${file}`);
+  });
+  
 } catch (error) {
   console.error('Error copying files:', error);
   process.exit(1);

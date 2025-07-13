@@ -108,6 +108,29 @@ app.get('/test', (req, res) => {
   });
 });
 
+// Test images endpoint
+app.get('/test-images', (req, res) => {
+  console.log('Test images endpoint requested');
+  const imagesPath = path.join(__dirname, 'public/images');
+  let images = [];
+  
+  if (fs.existsSync(imagesPath)) {
+    try {
+      images = fs.readdirSync(imagesPath);
+    } catch (error) {
+      console.error('Error reading images:', error);
+    }
+  }
+  
+  res.json({ 
+    message: 'Images test',
+    imagesPath: imagesPath,
+    imagesExist: fs.existsSync(imagesPath),
+    availableImages: images,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API Routes - must come before static files
 app.use('/api/auth', authRoutes);
 app.use('/api/recharge', rechargeRoutes);
