@@ -1,0 +1,17 @@
+{
+  "name": "wing-system",
+  "version": "1.0.0",
+  "description": "Wing System - A comprehensive authentication and management system",
+  "main": "Backend/server.js",
+  "scripts": {
+    "start": "cd Backend && npm start",
+    "dev": "cd Backend && npm run dev",
+    "install-deps": "cd Backend && npm install"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+} 

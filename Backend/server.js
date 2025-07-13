@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Enable CORS
-const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['*'];
 app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl requests)
@@ -58,14 +58,21 @@ app.use((req, res, next) => {
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    if (!mongoUri) {
+      console.error('MongoDB URI not found in environment variables');
+      throw new Error('MongoDB URI not configured');
+    }
+    
+    const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('MongoDB connection error:', error);
-    process.exit(1);
+    // Don't exit process, let the server start without DB for now
+    console.log('Server will start without database connection');
   }
 };
 
@@ -73,7 +80,20 @@ connectDB();
 
 // API health check
 app.get('/api', (req, res) => {
-  res.json({ message: 'API is running' });
+  res.json({ 
+    message: 'API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Additional health check for Railway
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // API Routes - must come before static files
@@ -119,7 +139,13 @@ app.use((req, res, next) => {
 });
 
 // Static files
-app.use(express.static(path.join(__dirname, '../frontend/public')));
+const frontendPath = path.join(__dirname, '../frontend/public');
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath));
+  console.log('Serving static files from:', frontendPath);
+} else {
+  console.error('Frontend directory not found:', frontendPath);
+}
 
 // API 404 handler
 app.use('/api/*', (req, res) => {
@@ -131,7 +157,15 @@ app.use('/api/*', (req, res) => {
 
 // Serve index.html for non-API routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/public', 'index.html'));
+  const indexPath = path.join(__dirname, '../frontend/public', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({
+      success: false,
+      error: 'Frontend files not found'
+    });
+  }
 });
 
 // Error handling middleware
@@ -158,7 +192,7 @@ process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 let server;
 
 const startServer = async () => {
