@@ -4,9 +4,9 @@
     "description": "Wing System - A comprehensive authentication and management system",
     "main": "server.js",
       "scripts": {
-    "start": "node server.js",
+    "start": "node copy-frontend.js && node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'No build step required'"
+    "build": "node copy-frontend.js"
   },
     "keywords": [],
     "author": "",

@@ -138,13 +138,28 @@ app.use((req, res, next) => {
     next();
 });
 
-// Static files
-const frontendPath = path.join(__dirname, '../frontend/public');
-if (fs.existsSync(frontendPath)) {
+// Static files - try multiple possible paths
+const possibleFrontendPaths = [
+  path.join(__dirname, '../frontend/public'),
+  path.join(__dirname, '../Frontend/public'),
+  path.join(__dirname, 'public'),
+  path.join(__dirname, '../public')
+];
+
+let frontendPath = null;
+for (const testPath of possibleFrontendPaths) {
+  if (fs.existsSync(testPath)) {
+    frontendPath = testPath;
+    console.log('Found frontend directory at:', frontendPath);
+    break;
+  }
+}
+
+if (frontendPath) {
   app.use(express.static(frontendPath));
   console.log('Serving static files from:', frontendPath);
 } else {
-  console.error('Frontend directory not found:', frontendPath);
+  console.error('Frontend directory not found. Tried paths:', possibleFrontendPaths);
 }
 
 // API 404 handler
@@ -157,13 +172,32 @@ app.use('/api/*', (req, res) => {
 
 // Serve index.html for non-API routes
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../frontend/public', 'index.html');
+  if (!frontendPath) {
+    // Serve fallback page instead of JSON error
+    const fallbackPath = path.join(__dirname, 'fallback.html');
+    if (fs.existsSync(fallbackPath)) {
+      return res.sendFile(fallbackPath);
+    }
+    return res.status(404).json({
+      success: false,
+      error: 'Frontend files not found',
+      triedPaths: possibleFrontendPaths
+    });
+  }
+  
+  const indexPath = path.join(frontendPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
+    // Serve fallback page if index.html not found
+    const fallbackPath = path.join(__dirname, 'fallback.html');
+    if (fs.existsSync(fallbackPath)) {
+      return res.sendFile(fallbackPath);
+    }
     res.status(404).json({
       success: false,
-      error: 'Frontend files not found'
+      error: 'index.html not found',
+      indexPath: indexPath
     });
   }
 });
