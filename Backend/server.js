@@ -89,10 +89,22 @@ app.get('/api', (req, res) => {
 
 // Additional health check for Railway
 app.get('/health', (req, res) => {
+  console.log('Health check requested');
   res.json({ 
     status: 'ok',
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Simple test endpoint
+app.get('/test', (req, res) => {
+  console.log('Test endpoint requested');
+  res.json({ 
+    message: 'Server is working!',
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -226,14 +238,42 @@ process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);
 });
 
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  console.error('Stack trace:', err.stack);
+});
+
+// Log startup
+console.log('=== Server Startup ===');
+console.log('Node version:', process.version);
+console.log('Port:', process.env.PORT || 5000);
+console.log('Environment:', process.env.NODE_ENV || 'development');
+console.log('Current directory:', __dirname);
+
 const PORT = process.env.PORT || 5000;
 let server;
 
 const startServer = async () => {
   try {
-    server = app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    console.log('Starting server...');
+    console.log('Port:', PORT);
+    console.log('Environment:', process.env.NODE_ENV);
+    
+    server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`✅ Server is running on port ${PORT}`);
+      console.log(`✅ Health check available at: http://localhost:${PORT}/health`);
+      console.log(`✅ API available at: http://localhost:${PORT}/api`);
     });
+    
+    // Add error handler for the server
+    server.on('error', (error) => {
+      console.error('Server error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error('Port is already in use');
+      }
+    });
+    
   } catch (error) {
     console.error('Failed to start server:', error);
     process.exit(1);
