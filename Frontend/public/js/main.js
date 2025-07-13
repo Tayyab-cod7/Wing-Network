@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // API Base URL
-    const API_URL = window.location.protocol + '//' + window.location.hostname + ':5000';
+    // API Base URL - Use current domain without port for Railway deployment
+    const API_URL = window.location.protocol + '//' + window.location.hostname;
     console.log('Using API URL:', API_URL);
 
     // Input validation functions

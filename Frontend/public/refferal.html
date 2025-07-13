@@ -675,7 +675,7 @@
     </script>
 
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.location.protocol + '//' + window.location.hostname;
 
         // Check if server is available
         async function checkServer() {

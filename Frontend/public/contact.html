@@ -386,7 +386,7 @@
     </script>
 
     <script>
-        const API_URL = 'http://localhost:5000';
+        const API_URL = window.location.protocol + '//' + window.location.hostname;
         const contactForm = document.getElementById('contactForm');
         const submitBtn = document.getElementById('submitBtn');
         const successAlert = document.getElementById('successAlert');
